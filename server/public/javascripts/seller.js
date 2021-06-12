@@ -98,22 +98,38 @@ var SellerView = React.createClass({
 		return chartData;
 	},
 	componentDidMount: function() {
-		var ctx = document.getElementById("salesChart").getContext("2d");
-		var chart = new Chart(ctx);
-		this.setState({chart: chart});
+		var salesChartCtx = document.getElementById("salesChart").getContext("2d");
+		var salesChart = new Chart(salesChartCtx);
+		this.setState({salesChart: salesChart});
+
+		var stressChartCtx = document.getElementById("stressChart").getContext("2d");
+		var stressChart = new Chart(stressChartCtx);
+		this.setState({stressChart: stressChart});
 	},
 	componentWillReceiveProps: function() {
-		var history = this.formatChartData(this.props.salesHistory);
-		this.setState({salesHistory: history});
+		var salesHistory = this.formatChartData(this.props.salesHistory);
+		this.setState({salesHistory: salesHistory});
+
+		var stressHistory = this.formatChartData(this.props.stressHistory);
+		this.setState({stressHistory: stressHistory});
 	},
 	refreshChart: function() {
-		if(this.state.chart && this.state.salesHistory) {
-			var chart = this.state.chart;
+		if(this.state.salesChart && this.state.salesHistory) {
+			var salesChart = this.state.salesChart;
 			var noAnimation = {
 				bezierCurve: false,
 				animation: false
 			};
-			chart.Line(this.state.salesHistory, noAnimation);
+			salesChart.Line(this.state.salesHistory, noAnimation);
+		}
+
+		if(this.state.stressChart && this.state.stressHistory) {
+			var stressChart = this.state.stressChart;
+			var noAnimation = {
+				bezierCurve: false,
+				animation: false
+			};
+			stressChart.Line(this.state.stressHistory, noAnimation);
 		}
 	},
 	render: function(){
@@ -158,8 +174,12 @@ var SellerView = React.createClass({
 						</div>
 					</div>
 					<div className='col-md-8'>
-						<h2>History</h2>
+						<h2>Sales History</h2>
 						<canvas id="salesChart" width="730" height="400"></canvas>
+					</div>
+					<div className='col-md-8'>
+						<h2>Stress History</h2>
+						<canvas id="stressChart" width="730" height="400"></canvas>
 					</div>
 				</div>
 				<hr/>
@@ -197,6 +217,18 @@ var Seller = React.createClass({
 			}.bind(this)
 		});
 	},
+	getStressHistory: function() {
+		$.ajax({
+			url: '/sellers/stressHistory?chunk=' + this.props.historyFrequency,
+			datatype: 'json',
+			success: function(data) {
+				this.setState({stressHistory:data});
+			}.bind(this),
+			error: function(xhr, status, err){
+				console.error(this.props.url, status, err.toString());
+			}.bind(this)
+		});
+	},
 
 	handleSellerSubmit: function(newSeller) {
 		var currentSellers = this.state.data;
@@ -223,6 +255,7 @@ var Seller = React.createClass({
 	reloadSellersData: function() {
 		this.loadSellersFromServer();
 		this.getSalesHistory();
+		this.getStressHistory();
 	},
 
 	componentDidMount: function(){
@@ -234,7 +267,7 @@ var Seller = React.createClass({
 		return (
 			<div className='container'>
 				<SellerForm onSellerSubmit={this.handleSellerSubmit} />
-				<SellerView data={this.state.data} salesHistory={this.state.salesHistory} />
+				<SellerView data={this.state.data} salesHistory={this.state.salesHistory} stressHistory={this.state.stressHistory} />
 			</div>
 		);
 	}

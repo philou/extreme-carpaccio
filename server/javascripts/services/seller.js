@@ -45,6 +45,37 @@ service.getCashHistory = function (chunk) {
   return { history: cashHistoryReduced, lastIteration: lastIteration }
 }
 
+service.getStressHistory = function (chunk) {
+  var cashHistory = this.sellers.cashHistory
+  var stressHistoryReduced = {}
+  var lastIteration
+
+  var hashStress = function (seller, iteration) {
+    var s = seller + iteration;
+    return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0);return a&a},0);
+  }
+
+  var seller
+  for (seller in cashHistory) {
+    stressHistoryReduced[seller] = []
+
+    var i = 0
+    for (; i < cashHistory[seller].length; i++) {
+      if ((i + 1) % chunk === 0) {
+        stressHistoryReduced[seller].push(hashStress(seller, i))
+      }
+    }
+
+    if (i % chunk !== 0) {
+      stressHistoryReduced[seller].push(hashStress(seller, i-1))
+    }
+
+    lastIteration = i
+  }
+
+  return { history: stressHistoryReduced, lastIteration: lastIteration }
+}
+
 service.isAuthorized = function (name, password) {
   var seller = this.sellers.get(name)
   if (seller) {

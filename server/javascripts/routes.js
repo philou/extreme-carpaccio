@@ -1,4 +1,4 @@
-var express = require('express')
+  var express = require('express')
 var _ = require('lodash')
 
 module.exports = function (sellerService, dispatcher) {
@@ -22,6 +22,11 @@ module.exports = function (sellerService, dispatcher) {
   router.get('/sellers/history', function (request, response) {
     var chunk = request.query.chunk || 10
     response.status(OK).send(sellerService.getCashHistory(chunk))
+  })
+
+  router.get('/sellers/stressHistory', function (request, response) {
+    var chunk = request.query.chunk || 10
+    response.status(OK).send(sellerService.getStressHistory(chunk))
   })
 
   router.post('/seller', function (request, response) {
